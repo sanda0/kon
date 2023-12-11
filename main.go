@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
 )
 
 // Server struct to represent server details
@@ -33,8 +34,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Get the current user
+	currentUser, err := user.Current()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Construct the path to the servers.json file using the user's home directory
+	filePath := currentUser.HomeDir + "/servers.json"
 	// Read server details from JSON file
-	servers, err := readServerConfig("servers.json")
+	servers, err := readServerConfig(filePath)
 	if err != nil {
 		fmt.Println("Error reading server configuration:", err)
 		os.Exit(1)
@@ -107,8 +117,18 @@ func addServerInteractive() {
 	fmt.Print("Enter server password: ")
 	fmt.Scan(&newServer.Password)
 
+	// Get the current user
+	currentUser, err := user.Current()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	// Construct the path to the servers.json file using the user's home directory
+	filePath := currentUser.HomeDir + "/servers.json"
+
 	// Read existing server details from JSON file
-	servers, err := readServerConfig("servers.json")
+	servers, err := readServerConfig(filePath)
 	if err != nil {
 		// If file doesn't exist, create a new slice of servers
 		servers = make([]Server, 0)
@@ -125,7 +145,7 @@ func addServerInteractive() {
 	}
 
 	// Write the updated JSON to the file
-	err = ioutil.WriteFile("servers.json", serverJSON, 0644)
+	err = ioutil.WriteFile(filePath, serverJSON, 0644)
 	if err != nil {
 		fmt.Println("Error writing to server configuration file:", err)
 		os.Exit(1)
